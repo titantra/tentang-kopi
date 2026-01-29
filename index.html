@@ -8,48 +8,18 @@
     <script src="libs/mindar-image-aframe.prod.js"></script>
     <script src="libs/html2canvas.min.js"></script>
     <script>
-        // --- GLOBAL TEXTURE FIXER COMPONENT (STRETCH FIX) ---
-        // Forces ClampToEdgeWrapping AND minor UV scaling to remove black bars
-        AFRAME.registerComponent('fix-texture', {
-            init: function () {
-                this.el.addEventListener('materialtextureloaded', (e) => {
-                    const texture = e.detail.texture;
-                    if (texture) {
-                        // FORCE CLAMP (Remove Edge Artifacts)
-                        texture.wrapS = THREE.ClampToEdgeWrapping;
-                        texture.wrapT = THREE.ClampToEdgeWrapping;
-                        
-                        // FORCE ZOOM (Crop Edge Bars)
-                        // Scale texture UVs by 0.98 (Zoom in 2%) to cut off potential black bars from browser decoding
-                        texture.center.set(0.5, 0.5);
-                        texture.repeat.set(0.98, 0.98); 
-                        
-                        texture.minFilter = THREE.LinearFilter;
-                        texture.needsUpdate = true;
-                    }
-                });
-            }
-        });
-
-        // UPDATED SHADER: Added ClampToEdge to fix Black Borders
+        // UPDATED SHADER: Added opacity support for fade effects
         AFRAME.registerShader('chromakey', {
             schema: { 
                 src: {type: 'map'}, 
                 color: {type: 'color', default: '#00ff00'}, 
                 threshold: {type: 'number', default: 0.4}, 
                 softness: {type: 'number', default: 0.1},
-                opacity: {type: 'number', default: 1.0} 
+                opacity: {type: 'number', default: 1.0} // New Opacity Uniform
             },
             init: function (data) {
                 var videoTexture = new THREE.VideoTexture(data.src);
                 videoTexture.minFilter = THREE.LinearFilter;
-                
-                // --- FIX: CLAMP TO EDGE & AUTO STRETCH LOGIC ---
-                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
-                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
-                videoTexture.center.set(0.5, 0.5);
-                videoTexture.repeat.set(0.98, 0.98); // Zoom in slightly
-                
                 this.material = new THREE.ShaderMaterial({
                     uniforms: { 
                         texture: {value: videoTexture}, 
@@ -65,14 +35,7 @@
                 });
             },
             update: function (data) { 
-                if (data.src) {
-                    var newTex = new THREE.VideoTexture(data.src);
-                    newTex.wrapS = THREE.ClampToEdgeWrapping;
-                    newTex.wrapT = THREE.ClampToEdgeWrapping;
-                    newTex.center.set(0.5, 0.5);
-                    newTex.repeat.set(0.98, 0.98);
-                    this.material.uniforms.texture.value = newTex; 
-                }
+                if (data.src) this.material.uniforms.texture.value = new THREE.VideoTexture(data.src); 
                 this.material.uniforms.color.value = new THREE.Color(data.color);
                 this.material.uniforms.opacity.value = data.opacity; 
             }
@@ -150,9 +113,6 @@
         /* FORCE HIDE VR BUTTON */
         .a-enter-vr { display: none !important; }
         
-        /* FORCE VIDEO FILL OBJECT-FIT */
-        video { object-fit: fill !important; }
-
         /* UI LAYOUT STRUCTURE FOR CAPTURE */
         #ui-container {
             position: fixed;
@@ -543,11 +503,6 @@
                 const planeId = 'plane-' + i; // NEW ID for targeting opacity
                 if(item.isVideo) {
                     const v = document.createElement('video');
-                    // --- FORCE VIDEO TO FILL CONTAINER TO PREVENT LETTERBOXING ---
-                    v.style.objectFit = 'fill'; 
-                    v.style.width = '100%';
-                    v.style.height = '100%';
-                    
                     v.id = id; v.src = item.content; v.setAttribute('loop','true'); v.setAttribute('playsinline','true'); v.setAttribute('webkit-playsinline','true'); v.setAttribute('crossorigin','anonymous');
                     assets.appendChild(v);
                 } else {
@@ -567,18 +522,13 @@
                 plane.setAttribute('width', '1');
                 plane.setAttribute('height', (1/item.targetRatio).toString());
                 plane.setAttribute('position', '0 0 0');
-                // --- FIX 2: INCREASED OVERSCALE 1.05 (105%) for SAFETY ---
-                plane.setAttribute('scale', '1.05 1.05 1'); 
                 plane.setAttribute('src', '#' + id);
                 
                 if(item.isVideo) {
-                    // --- FIX 3: GLOBAL TEXTURE WRAP FIX & TRANSPARENT FALSE FOR STANDARD VIDEO ---
-                    plane.setAttribute('fix-texture', '');
-                    
                     if(item.isGreenScreen) plane.setAttribute('chromakey-material', 'src:#' + id + '; color:#00ff00');
-                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double; transparent:false'); // Transparent false for solid video
+                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double; transparent:true');
                     
-                    // Events are now handled by 'smooth-fade' component
+                    // Events are now handled by 'smooth-fade' component, not here manually
                 } else {
                     // For static images, just basic show/hide UI logic
                     el.addEventListener('targetFound', () => showUI(i, true));

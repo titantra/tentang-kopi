@@ -8,128 +8,25 @@
     <script src="libs/mindar-image-aframe.prod.js"></script>
     <script src="libs/html2canvas.min.js"></script>
     <script>
-        // --- GLOBAL TEXTURE FIXER COMPONENT (NEW) ---
-        // Forces ClampToEdgeWrapping on all video textures to prevent black lines
-        AFRAME.registerComponent('fix-texture', {
-            init: function () {
-                this.el.addEventListener('materialtextureloaded', (e) => {
-                    const texture = e.detail.texture;
-                    if (texture) {
-                        texture.wrapS = THREE.ClampToEdgeWrapping;
-                        texture.wrapT = THREE.ClampToEdgeWrapping;
-                        texture.needsUpdate = true;
-                    }
-                });
-            }
-        });
-
-        // UPDATED SHADER: Added ClampToEdge to fix Black Borders
+        // SHADER REVERTED TO V19 (Simpler version, NO ClampToEdge)
         AFRAME.registerShader('chromakey', {
-            schema: { 
-                src: {type: 'map'}, 
-                color: {type: 'color', default: '#00ff00'}, 
-                threshold: {type: 'number', default: 0.4}, 
-                softness: {type: 'number', default: 0.1},
-                opacity: {type: 'number', default: 1.0} 
-            },
+            schema: { src: {type: 'map'}, color: {type: 'color', default: '#00ff00'}, threshold: {type: 'number', default: 0.4}, softness: {type: 'number', default: 0.1} },
             init: function (data) {
                 var videoTexture = new THREE.VideoTexture(data.src);
                 videoTexture.minFilter = THREE.LinearFilter;
-                
-                // --- FIX: CLAMP TO EDGE (Menghilangkan garis hitam) ---
-                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
-                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
-                
                 this.material = new THREE.ShaderMaterial({
-                    uniforms: { 
-                        texture: {value: videoTexture}, 
-                        color: {value: new THREE.Color(data.color)}, 
-                        threshold: {value: data.threshold}, 
-                        softness: {value: data.softness},
-                        opacity: {value: data.opacity}
-                    },
+                    uniforms: { texture: {value: videoTexture}, color: {value: new THREE.Color(data.color)}, threshold: {value: data.threshold}, softness: {value: data.softness} },
                     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-                    // Updated Fragment Shader: Multiplying alpha by opacity
-                    fragmentShader: 'uniform sampler2D texture; uniform vec3 color; uniform float threshold; uniform float softness; uniform float opacity; varying vec2 vUv; void main() { vec4 texColor = texture2D(texture, vUv); float Y = 0.299 * texColor.r + 0.587 * texColor.g + 0.114 * texColor.b; float Cb = 0.564 * (texColor.b - Y); float Cr = 0.713 * (texColor.r - Y); float Ykey = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b; float Cbkey = 0.564 * (color.b - Ykey); float Crkey = 0.713 * (color.r - Ykey); float dist = distance(vec2(Cb, Cr), vec2(Cbkey, Crkey)); float alpha = smoothstep(threshold - softness, threshold + softness, dist); float spill = 1.0 - smoothstep(threshold, threshold + softness * 2.0, dist); texColor.g = texColor.g - spill * (texColor.g - max(texColor.r, texColor.b)) * 0.5; gl_FragColor = vec4(texColor.rgb, alpha * opacity); }',
+                    fragmentShader: 'uniform sampler2D texture; uniform vec3 color; uniform float threshold; uniform float softness; varying vec2 vUv; void main() { vec4 texColor = texture2D(texture, vUv); float Y = 0.299 * texColor.r + 0.587 * texColor.g + 0.114 * texColor.b; float Cb = 0.564 * (texColor.b - Y); float Cr = 0.713 * (texColor.r - Y); float Ykey = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b; float Cbkey = 0.564 * (color.b - Ykey); float Crkey = 0.713 * (color.r - Ykey); float dist = distance(vec2(Cb, Cr), vec2(Cbkey, Crkey)); float alpha = smoothstep(threshold - softness, threshold + softness, dist); float spill = 1.0 - smoothstep(threshold, threshold + softness * 2.0, dist); texColor.g = texColor.g - spill * (texColor.g - max(texColor.r, texColor.b)) * 0.5; gl_FragColor = vec4(texColor.rgb, alpha); }',
                     transparent: true, side: THREE.DoubleSide
                 });
             },
-            update: function (data) { 
-                if (data.src) {
-                    var newTex = new THREE.VideoTexture(data.src);
-                    newTex.wrapS = THREE.ClampToEdgeWrapping;
-                    newTex.wrapT = THREE.ClampToEdgeWrapping;
-                    this.material.uniforms.texture.value = newTex; 
-                }
-                this.material.uniforms.color.value = new THREE.Color(data.color);
-                this.material.uniforms.opacity.value = data.opacity; 
-            }
+            update: function (data) { if (data.src) this.material.uniforms.texture.value = new THREE.VideoTexture(data.src); this.material.uniforms.color.value = new THREE.Color(data.color); }
         });
 
         AFRAME.registerComponent('chromakey-material', {
             schema: { src: {type: 'selector'}, color: {type: 'color', default: '#00ff00'} },
             init: function() { this.el.setAttribute('material', { shader: 'chromakey', src: this.data.src, color: this.data.color, transparent: true, side: 'double' }); }
-        });
-
-        // NEW COMPONENT: Handles Smooth Fading Logic (1.5s Fade Out)
-        AFRAME.registerComponent('smooth-fade', {
-            schema: {
-                vid: {type: 'selector'},
-                target: {type: 'selector'},
-                index: {type: 'number'}
-            },
-            init: function() {
-                this.isVisible = false;
-                this.fadeTimeout = null;
-                
-                // When Found: Fade In Fast & Play
-                this.el.addEventListener('targetFound', () => {
-                    this.isVisible = true;
-                    if(this.fadeTimeout) clearTimeout(this.fadeTimeout);
-                    
-                    const vid = this.data.vid;
-                    const plane = this.data.target;
-                    
-                    if(vid) vid.play();
-                    
-                    // Animate Opacity 0 -> 1 (Fast: 500ms)
-                    plane.setAttribute('animation', {
-                        property: 'material.opacity', // Supports standard and updated chromakey
-                        from: 0,
-                        to: 1,
-                        dur: 500,
-                        easing: 'linear'
-                    });
-                    
-                    // Show UI immediately
-                    if(typeof showUI === 'function') showUI(this.data.index, true);
-                });
-
-                // When Lost: Fade Out Slow (1.5s) then Pause
-                this.el.addEventListener('targetLost', () => {
-                    this.isVisible = false;
-                    const vid = this.data.vid;
-                    const plane = this.data.target;
-                    
-                    // Animate Opacity 1 -> 0 (Slow: 1500ms)
-                    plane.setAttribute('animation', {
-                        property: 'material.opacity',
-                        from: 1,
-                        to: 0,
-                        dur: 1500,
-                        easing: 'linear'
-                    });
-                    
-                    // Wait for fade to finish before pausing video
-                    this.fadeTimeout = setTimeout(() => {
-                        if(!this.isVisible && vid) {
-                            vid.pause();
-                        }
-                        // Also hide UI after fade
-                        if(typeof showUI === 'function') showUI(this.data.index, false);
-                    }, 1500);
-                });
-            }
         });
     </script>
     <style>
@@ -216,8 +113,9 @@
     </style>
 </head>
 <body>
-    <!-- UPDATED SCENE: missTolerance:0 for instant lost detection, filterMinCF/Beta for smooth locking -->
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading:no; uiScanning:no; filterMinCF:0.0001; filterBeta: 0.1; warmupTolerance: 5; missTolerance: 0;" 
+    <!-- UPDATED SCENE: REVERTED TO V19 PARAMS (Higher Beta = Less Jitter) -->
+    <!-- UPDATED: missTolerance set to 1 as requested -->
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading:no; uiScanning:no; filterMinCF:0.001; filterBeta: 1000; warmupTolerance: 5; missTolerance: 1;" 
              color-space="sRGB" 
              renderer="colorManagement: true, physicallyCorrectLights; preserveDrawingBuffer: true" 
              vr-mode-ui="enabled: false" 
@@ -537,28 +435,25 @@
                 const el = document.createElement('a-entity');
                 el.setAttribute('mindar-image-target', 'targetIndex: ' + item.targetIndex);
                 
-                // ATTACH FADING LOGIC COMPONENT TO PARENT
-                if(item.isVideo) {
-                     el.setAttribute('smooth-fade', 'vid:#' + id + '; target:#' + planeId + '; index:' + i);
-                }
+                // NOTE: 'smooth-fade' logic REMOVED to match v19 stability
                 
                 const plane = document.createElement('a-plane');
                 plane.id = planeId; // Assign ID
                 plane.setAttribute('width', '1');
                 plane.setAttribute('height', (1/item.targetRatio).toString());
                 plane.setAttribute('position', '0 0 0');
-                // --- FIX 2: INCREASED OVERSCALE 1.03 (103%) ---
-                plane.setAttribute('scale', '1.03 1.03 1'); 
+                // NOTE: Scale 1.03 REMOVED to match v19 stability
                 plane.setAttribute('src', '#' + id);
                 
                 if(item.isVideo) {
-                    // --- FIX 3: GLOBAL TEXTURE WRAP FIX & TRANSPARENT FALSE FOR STANDARD VIDEO ---
-                    plane.setAttribute('fix-texture', '');
+                    // NOTE: 'fix-texture' REMOVED to match v19 stability
                     
                     if(item.isGreenScreen) plane.setAttribute('chromakey-material', 'src:#' + id + '; color:#00ff00');
-                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double; transparent:false'); // Transparent false for solid video
+                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double'); // Reverted to standard flat shader
                     
-                    // Events are now handled by 'smooth-fade' component
+                    const vid = document.getElementById(id);
+                    el.addEventListener('targetFound', () => { vid.play(); showUI(i, true); });
+                    el.addEventListener('targetLost', () => { vid.pause(); showUI(i, false); });
                 } else {
                     // For static images, just basic show/hide UI logic
                     el.addEventListener('targetFound', () => showUI(i, true));

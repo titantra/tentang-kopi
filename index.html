@@ -8,18 +8,23 @@
     <script src="libs/mindar-image-aframe.prod.js"></script>
     <script src="libs/html2canvas.min.js"></script>
     <script>
-        // UPDATED SHADER: Added opacity support for fade effects
+        // UPDATED SHADER: Added ClampToEdge to fix Black Borders
         AFRAME.registerShader('chromakey', {
             schema: { 
                 src: {type: 'map'}, 
                 color: {type: 'color', default: '#00ff00'}, 
                 threshold: {type: 'number', default: 0.4}, 
                 softness: {type: 'number', default: 0.1},
-                opacity: {type: 'number', default: 1.0} // New Opacity Uniform
+                opacity: {type: 'number', default: 1.0} 
             },
             init: function (data) {
                 var videoTexture = new THREE.VideoTexture(data.src);
                 videoTexture.minFilter = THREE.LinearFilter;
+                
+                // --- FIX: CLAMP TO EDGE (Menghilangkan garis hitam) ---
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                
                 this.material = new THREE.ShaderMaterial({
                     uniforms: { 
                         texture: {value: videoTexture}, 
@@ -35,7 +40,12 @@
                 });
             },
             update: function (data) { 
-                if (data.src) this.material.uniforms.texture.value = new THREE.VideoTexture(data.src); 
+                if (data.src) {
+                    var newTex = new THREE.VideoTexture(data.src);
+                    newTex.wrapS = THREE.ClampToEdgeWrapping;
+                    newTex.wrapT = THREE.ClampToEdgeWrapping;
+                    this.material.uniforms.texture.value = newTex; 
+                }
                 this.material.uniforms.color.value = new THREE.Color(data.color);
                 this.material.uniforms.opacity.value = data.opacity; 
             }
@@ -522,6 +532,8 @@
                 plane.setAttribute('width', '1');
                 plane.setAttribute('height', (1/item.targetRatio).toString());
                 plane.setAttribute('position', '0 0 0');
+                // --- FIX: OVERSCALE 1.01 (Menghilangkan celah mikro) ---
+                plane.setAttribute('scale', '1.01 1.01 1'); 
                 plane.setAttribute('src', '#' + id);
                 
                 if(item.isVideo) {

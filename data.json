@@ -2,7 +2,7 @@
   {
     "targetIndex": 0,
     "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698015/t4r7igf0y0dx7mw8iwtb.mp4",
+    "content": "assets/content_0.mp4",
     "isVideo": true,
     "isGreenScreen": false,
     "ui": {
@@ -15,14 +15,14 @@
       "links": {
         "website": "",
         "telegram": "",
-        "whatsapp": ""
+        "whatsapp": "+81584991223"
       }
     }
   },
   {
     "targetIndex": 1,
     "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698044/r0pzk3dttffrwgwk1l48.mp4",
+    "content": "assets/content_1.mp4",
     "isVideo": true,
     "isGreenScreen": false,
     "ui": {
@@ -35,14 +35,14 @@
       "links": {
         "website": "",
         "telegram": "",
-        "whatsapp": ""
+        "whatsapp": "+81584991223"
       }
     }
   },
   {
     "targetIndex": 2,
     "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698073/b92a59iloe2pm6xhh4va.mp4",
+    "content": "assets/content_2.mp4",
     "isVideo": true,
     "isGreenScreen": false,
     "ui": {
@@ -55,127 +55,7 @@
       "links": {
         "website": "",
         "telegram": "",
-        "whatsapp": ""
-      }
-    }
-  },
-  {
-    "targetIndex": 3,
-    "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698093/ll7ikqquiep4wx6ooekw.mp4",
-    "isVideo": true,
-    "isGreenScreen": false,
-    "ui": {
-      "show": true,
-      "text": "Di depan layar kaca, kopi menjadi saksi tenang bagi cinta yang matang dan kemewahan waktu yang melambat.",
-      "textSize": "0.8",
-      "color": "#8c581d",
-      "opacity": "0.25",
-      "textColor": "#ffffff",
-      "links": {
-        "website": "",
-        "telegram": "",
-        "whatsapp": ""
-      }
-    }
-  },
-  {
-    "targetIndex": 4,
-    "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698117/av3jrfpi5lobxed5iys7.mp4",
-    "isVideo": true,
-    "isGreenScreen": false,
-    "ui": {
-      "show": true,
-      "text": "Kamera membekukan waktu namun kopi menghangatkannya kembali, menyadarkan bahwa momen indah hadir untuk disesap dan dirasa.",
-      "textSize": "0.8",
-      "color": "#8c581d",
-      "opacity": "0.25",
-      "textColor": "#ffffff",
-      "links": {
-        "website": "",
-        "telegram": "",
-        "whatsapp": ""
-      }
-    }
-  },
-  {
-    "targetIndex": 5,
-    "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698426/rj2es1k8caizzc39rqtx.mp4",
-    "isVideo": true,
-    "isGreenScreen": false,
-    "ui": {
-      "show": true,
-      "text": "Kedai sudut kota lama adalah lorong waktu bersahaja, tempat kita melambat menikmati hening tanpa gangguan modernitas.",
-      "textSize": "0.8",
-      "color": "#8c581d",
-      "opacity": "0.25",
-      "textColor": "#ffffff",
-      "links": {
-        "website": "",
-        "telegram": "",
-        "whatsapp": ""
-      }
-    }
-  },
-  {
-    "targetIndex": 6,
-    "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698446/jk8zsuvacm4vluqr2oma.mp4",
-    "isVideo": true,
-    "isGreenScreen": false,
-    "ui": {
-      "show": true,
-      "text": "Di tengah kota, kopi menjadi perekat hangat yang membuat tawa dan cerita bersama sahabat terasa lebih hidup.",
-      "textSize": "0.8",
-      "color": "#8c581d",
-      "opacity": "0.25",
-      "textColor": "#ffffff",
-      "links": {
-        "website": "",
-        "telegram": "",
-        "whatsapp": ""
-      }
-    }
-  },
-  {
-    "targetIndex": 7,
-    "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698462/aft44i03vo2q1jp8md61.mp4",
-    "isVideo": true,
-    "isGreenScreen": false,
-    "ui": {
-      "show": true,
-      "text": "Di warung desa, seduhan tangan ibu menyuguhkan rasa pulang yang meleburkan lelah sisa berladang dalam keakraban.",
-      "textSize": "0.8",
-      "color": "#8c581d",
-      "opacity": "0.25",
-      "textColor": "#ffffff",
-      "links": {
-        "website": "",
-        "telegram": "",
-        "whatsapp": ""
-      }
-    }
-  },
-  {
-    "targetIndex": 8,
-    "targetRatio": 1.5254237288135593,
-    "content": "https://res.cloudinary.com/dnhkhu8md/video/upload/v1769698483/cpp44crpxodbeygzeq1o.mp4",
-    "isVideo": true,
-    "isGreenScreen": false,
-    "ui": {
-      "show": true,
-      "text": "Di bawah siluet gunung, kopi merangkul lelah menjadi keakraban paling murni di tengah kesederhanaan alam.",
-      "textSize": "0.8",
-      "color": "#8c581d",
-      "opacity": "0.25",
-      "textColor": "#ffffff",
-      "links": {
-        "website": "",
-        "telegram": "",
-        "whatsapp": ""
+        "whatsapp": "+81584991223"
       }
     }
   }

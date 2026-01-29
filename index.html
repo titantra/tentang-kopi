@@ -8,23 +8,140 @@
     <script src="libs/mindar-image-aframe.prod.js"></script>
     <script src="libs/html2canvas.min.js"></script>
     <script>
+        // --- GLOBAL TEXTURE FIXER COMPONENT (STRETCH FIX) ---
+        // Forces ClampToEdgeWrapping AND minor UV scaling to remove black bars
+        AFRAME.registerComponent('fix-texture', {
+            init: function () {
+                this.el.addEventListener('materialtextureloaded', (e) => {
+                    const texture = e.detail.texture;
+                    if (texture) {
+                        // FORCE CLAMP (Remove Edge Artifacts)
+                        texture.wrapS = THREE.ClampToEdgeWrapping;
+                        texture.wrapT = THREE.ClampToEdgeWrapping;
+                        
+                        // FORCE ZOOM (Crop Edge Bars)
+                        // Scale texture UVs by 0.98 (Zoom in 2%) to cut off potential black bars from browser decoding
+                        texture.center.set(0.5, 0.5);
+                        texture.repeat.set(0.98, 0.98); 
+                        
+                        texture.minFilter = THREE.LinearFilter;
+                        texture.needsUpdate = true;
+                    }
+                });
+            }
+        });
+
+        // UPDATED SHADER: Added ClampToEdge to fix Black Borders
         AFRAME.registerShader('chromakey', {
-            schema: { src: {type: 'map'}, color: {type: 'color', default: '#00ff00'}, threshold: {type: 'number', default: 0.4}, softness: {type: 'number', default: 0.1} },
+            schema: { 
+                src: {type: 'map'}, 
+                color: {type: 'color', default: '#00ff00'}, 
+                threshold: {type: 'number', default: 0.4}, 
+                softness: {type: 'number', default: 0.1},
+                opacity: {type: 'number', default: 1.0} 
+            },
             init: function (data) {
                 var videoTexture = new THREE.VideoTexture(data.src);
                 videoTexture.minFilter = THREE.LinearFilter;
+                
+                // --- FIX: CLAMP TO EDGE & AUTO STRETCH LOGIC ---
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                videoTexture.center.set(0.5, 0.5);
+                videoTexture.repeat.set(0.98, 0.98); // Zoom in slightly
+                
                 this.material = new THREE.ShaderMaterial({
-                    uniforms: { texture: {value: videoTexture}, color: {value: new THREE.Color(data.color)}, threshold: {value: data.threshold}, softness: {value: data.softness} },
+                    uniforms: { 
+                        texture: {value: videoTexture}, 
+                        color: {value: new THREE.Color(data.color)}, 
+                        threshold: {value: data.threshold}, 
+                        softness: {value: data.softness},
+                        opacity: {value: data.opacity}
+                    },
                     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-                    fragmentShader: 'uniform sampler2D texture; uniform vec3 color; uniform float threshold; uniform float softness; varying vec2 vUv; void main() { vec4 texColor = texture2D(texture, vUv); float Y = 0.299 * texColor.r + 0.587 * texColor.g + 0.114 * texColor.b; float Cb = 0.564 * (texColor.b - Y); float Cr = 0.713 * (texColor.r - Y); float Ykey = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b; float Cbkey = 0.564 * (color.b - Ykey); float Crkey = 0.713 * (color.r - Ykey); float dist = distance(vec2(Cb, Cr), vec2(Cbkey, Crkey)); float alpha = smoothstep(threshold - softness, threshold + softness, dist); float spill = 1.0 - smoothstep(threshold, threshold + softness * 2.0, dist); texColor.g = texColor.g - spill * (texColor.g - max(texColor.r, texColor.b)) * 0.5; gl_FragColor = vec4(texColor.rgb, alpha); }',
+                    // Updated Fragment Shader: Multiplying alpha by opacity
+                    fragmentShader: 'uniform sampler2D texture; uniform vec3 color; uniform float threshold; uniform float softness; uniform float opacity; varying vec2 vUv; void main() { vec4 texColor = texture2D(texture, vUv); float Y = 0.299 * texColor.r + 0.587 * texColor.g + 0.114 * texColor.b; float Cb = 0.564 * (texColor.b - Y); float Cr = 0.713 * (texColor.r - Y); float Ykey = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b; float Cbkey = 0.564 * (color.b - Ykey); float Crkey = 0.713 * (color.r - Ykey); float dist = distance(vec2(Cb, Cr), vec2(Cbkey, Crkey)); float alpha = smoothstep(threshold - softness, threshold + softness, dist); float spill = 1.0 - smoothstep(threshold, threshold + softness * 2.0, dist); texColor.g = texColor.g - spill * (texColor.g - max(texColor.r, texColor.b)) * 0.5; gl_FragColor = vec4(texColor.rgb, alpha * opacity); }',
                     transparent: true, side: THREE.DoubleSide
                 });
             },
-            update: function (data) { if (data.src) this.material.uniforms.texture.value = new THREE.VideoTexture(data.src); this.material.uniforms.color.value = new THREE.Color(data.color); }
+            update: function (data) { 
+                if (data.src) {
+                    var newTex = new THREE.VideoTexture(data.src);
+                    newTex.wrapS = THREE.ClampToEdgeWrapping;
+                    newTex.wrapT = THREE.ClampToEdgeWrapping;
+                    newTex.center.set(0.5, 0.5);
+                    newTex.repeat.set(0.98, 0.98);
+                    this.material.uniforms.texture.value = newTex; 
+                }
+                this.material.uniforms.color.value = new THREE.Color(data.color);
+                this.material.uniforms.opacity.value = data.opacity; 
+            }
         });
+
         AFRAME.registerComponent('chromakey-material', {
             schema: { src: {type: 'selector'}, color: {type: 'color', default: '#00ff00'} },
             init: function() { this.el.setAttribute('material', { shader: 'chromakey', src: this.data.src, color: this.data.color, transparent: true, side: 'double' }); }
+        });
+
+        // NEW COMPONENT: Handles Smooth Fading Logic (1.5s Fade Out)
+        AFRAME.registerComponent('smooth-fade', {
+            schema: {
+                vid: {type: 'selector'},
+                target: {type: 'selector'},
+                index: {type: 'number'}
+            },
+            init: function() {
+                this.isVisible = false;
+                this.fadeTimeout = null;
+                
+                // When Found: Fade In Fast & Play
+                this.el.addEventListener('targetFound', () => {
+                    this.isVisible = true;
+                    if(this.fadeTimeout) clearTimeout(this.fadeTimeout);
+                    
+                    const vid = this.data.vid;
+                    const plane = this.data.target;
+                    
+                    if(vid) vid.play();
+                    
+                    // Animate Opacity 0 -> 1 (Fast: 500ms)
+                    plane.setAttribute('animation', {
+                        property: 'material.opacity', // Supports standard and updated chromakey
+                        from: 0,
+                        to: 1,
+                        dur: 500,
+                        easing: 'linear'
+                    });
+                    
+                    // Show UI immediately
+                    if(typeof showUI === 'function') showUI(this.data.index, true);
+                });
+
+                // When Lost: Fade Out Slow (1.5s) then Pause
+                this.el.addEventListener('targetLost', () => {
+                    this.isVisible = false;
+                    const vid = this.data.vid;
+                    const plane = this.data.target;
+                    
+                    // Animate Opacity 1 -> 0 (Slow: 1500ms)
+                    plane.setAttribute('animation', {
+                        property: 'material.opacity',
+                        from: 1,
+                        to: 0,
+                        dur: 1500,
+                        easing: 'linear'
+                    });
+                    
+                    // Wait for fade to finish before pausing video
+                    this.fadeTimeout = setTimeout(() => {
+                        if(!this.isVisible && vid) {
+                            vid.pause();
+                        }
+                        // Also hide UI after fade
+                        if(typeof showUI === 'function') showUI(this.data.index, false);
+                    }, 1500);
+                });
+            }
         });
     </script>
     <style>
@@ -33,6 +150,9 @@
         /* FORCE HIDE VR BUTTON */
         .a-enter-vr { display: none !important; }
         
+        /* FORCE VIDEO FILL OBJECT-FIT */
+        video { object-fit: fill !important; }
+
         /* UI LAYOUT STRUCTURE FOR CAPTURE */
         #ui-container {
             position: fixed;
@@ -111,7 +231,8 @@
     </style>
 </head>
 <body>
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading:no; uiScanning:no; filterMinCF:0.001; filterBeta: 1000; warmupTolerance: 5; missTolerance: 5;" 
+    <!-- UPDATED SCENE: missTolerance:0 for instant lost detection, filterMinCF/Beta for smooth locking -->
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading:no; uiScanning:no; filterMinCF:0.0001; filterBeta: 0.1; warmupTolerance: 5; missTolerance: 0;" 
              color-space="sRGB" 
              renderer="colorManagement: true, physicallyCorrectLights; preserveDrawingBuffer: true" 
              vr-mode-ui="enabled: false" 
@@ -419,8 +540,14 @@
             
             data.forEach((item, i) => {
                 const id = 'content-' + i;
+                const planeId = 'plane-' + i; // NEW ID for targeting opacity
                 if(item.isVideo) {
                     const v = document.createElement('video');
+                    // --- FORCE VIDEO TO FILL CONTAINER TO PREVENT LETTERBOXING ---
+                    v.style.objectFit = 'fill'; 
+                    v.style.width = '100%';
+                    v.style.height = '100%';
+                    
                     v.id = id; v.src = item.content; v.setAttribute('loop','true'); v.setAttribute('playsinline','true'); v.setAttribute('webkit-playsinline','true'); v.setAttribute('crossorigin','anonymous');
                     assets.appendChild(v);
                 } else {
@@ -430,20 +557,30 @@
                 const el = document.createElement('a-entity');
                 el.setAttribute('mindar-image-target', 'targetIndex: ' + item.targetIndex);
                 
+                // ATTACH FADING LOGIC COMPONENT TO PARENT
+                if(item.isVideo) {
+                     el.setAttribute('smooth-fade', 'vid:#' + id + '; target:#' + planeId + '; index:' + i);
+                }
+                
                 const plane = document.createElement('a-plane');
+                plane.id = planeId; // Assign ID
                 plane.setAttribute('width', '1');
                 plane.setAttribute('height', (1/item.targetRatio).toString());
                 plane.setAttribute('position', '0 0 0');
+                // --- FIX 2: INCREASED OVERSCALE 1.05 (105%) for SAFETY ---
+                plane.setAttribute('scale', '1.05 1.05 1'); 
                 plane.setAttribute('src', '#' + id);
                 
                 if(item.isVideo) {
-                    if(item.isGreenScreen) plane.setAttribute('chromakey-material', 'src:#' + id + '; color:#00ff00');
-                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double');
+                    // --- FIX 3: GLOBAL TEXTURE WRAP FIX & TRANSPARENT FALSE FOR STANDARD VIDEO ---
+                    plane.setAttribute('fix-texture', '');
                     
-                    const vid = document.getElementById(id);
-                    el.addEventListener('targetFound', () => { vid.play(); showUI(i, true); });
-                    el.addEventListener('targetLost', () => { vid.pause(); showUI(i, false); });
+                    if(item.isGreenScreen) plane.setAttribute('chromakey-material', 'src:#' + id + '; color:#00ff00');
+                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double; transparent:false'); // Transparent false for solid video
+                    
+                    // Events are now handled by 'smooth-fade' component
                 } else {
+                    // For static images, just basic show/hide UI logic
                     el.addEventListener('targetFound', () => showUI(i, true));
                     el.addEventListener('targetLost', () => showUI(i, false));
                 }

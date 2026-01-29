@@ -1,1 +1,0 @@
-Upload semua file ke server Anda.

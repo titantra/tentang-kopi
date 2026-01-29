@@ -8,6 +8,21 @@
     <script src="libs/mindar-image-aframe.prod.js"></script>
     <script src="libs/html2canvas.min.js"></script>
     <script>
+        // --- GLOBAL TEXTURE FIXER COMPONENT (NEW) ---
+        // Forces ClampToEdgeWrapping on all video textures to prevent black lines
+        AFRAME.registerComponent('fix-texture', {
+            init: function () {
+                this.el.addEventListener('materialtextureloaded', (e) => {
+                    const texture = e.detail.texture;
+                    if (texture) {
+                        texture.wrapS = THREE.ClampToEdgeWrapping;
+                        texture.wrapT = THREE.ClampToEdgeWrapping;
+                        texture.needsUpdate = true;
+                    }
+                });
+            }
+        });
+
         // UPDATED SHADER: Added ClampToEdge to fix Black Borders
         AFRAME.registerShader('chromakey', {
             schema: { 
@@ -532,15 +547,18 @@
                 plane.setAttribute('width', '1');
                 plane.setAttribute('height', (1/item.targetRatio).toString());
                 plane.setAttribute('position', '0 0 0');
-                // --- FIX: OVERSCALE 1.01 (Menghilangkan celah mikro) ---
-                plane.setAttribute('scale', '1.01 1.01 1'); 
+                // --- FIX 2: INCREASED OVERSCALE 1.03 (103%) ---
+                plane.setAttribute('scale', '1.03 1.03 1'); 
                 plane.setAttribute('src', '#' + id);
                 
                 if(item.isVideo) {
-                    if(item.isGreenScreen) plane.setAttribute('chromakey-material', 'src:#' + id + '; color:#00ff00');
-                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double; transparent:true');
+                    // --- FIX 3: GLOBAL TEXTURE WRAP FIX & TRANSPARENT FALSE FOR STANDARD VIDEO ---
+                    plane.setAttribute('fix-texture', '');
                     
-                    // Events are now handled by 'smooth-fade' component, not here manually
+                    if(item.isGreenScreen) plane.setAttribute('chromakey-material', 'src:#' + id + '; color:#00ff00');
+                    else plane.setAttribute('material', 'shader:flat; src:#'+id+'; side:double; transparent:false'); // Transparent false for solid video
+                    
+                    // Events are now handled by 'smooth-fade' component
                 } else {
                     // For static images, just basic show/hide UI logic
                     el.addEventListener('targetFound', () => showUI(i, true));

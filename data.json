@@ -1,0 +1,182 @@
+[
+  {
+    "targetIndex": 0,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_0.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Di bawah terpal angkringan, kopi dan percakapan sederhana menjadi istirahat paling jujur yang meredakan riuh kepala.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#fff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 1,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_1.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Di tepian sawah, kopi menjadi jeda damai bagi dua hati untuk menikmati pahit manisnya hari bersama-sama.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 2,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_2.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Di antara hening rak buku, kopi hadir sebagai teman setia yang menyempurnakan setiap bab cerita dalam harmoni.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 3,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_3.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Di depan layar kaca, kopi menjadi saksi tenang bagi cinta yang matang dan kemewahan waktu yang melambat.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 4,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_4.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Kamera membekukan waktu namun kopi menghangatkannya kembali, menyadarkan bahwa momen indah hadir untuk disesap dan dirasa.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 5,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_5.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Kedai sudut kota lama adalah lorong waktu bersahaja, tempat kita melambat menikmati hening tanpa gangguan modernitas.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 6,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_6.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Di tengah kota, kopi menjadi perekat hangat yang membuat tawa dan cerita bersama sahabat terasa lebih hidup.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 7,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_7.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Di warung desa, seduhan tangan ibu menyuguhkan rasa pulang yang meleburkan lelah sisa berladang dalam keakraban.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  },
+  {
+    "targetIndex": 8,
+    "targetRatio": 1.5254237288135593,
+    "content": "assets/content_8.mp4",
+    "isVideo": true,
+    "isGreenScreen": false,
+    "ui": {
+      "show": true,
+      "text": "Di bawah siluet gunung, kopi merangkul lelah menjadi keakraban paling murni di tengah kesederhanaan alam.",
+      "textSize": "0.8",
+      "color": "#8c581d",
+      "opacity": "0.25",
+      "textColor": "#ffffff",
+      "links": {
+        "website": "",
+        "telegram": "",
+        "whatsapp": "+81584991223"
+      }
+    }
+  }
+]
